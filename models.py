@@ -24,7 +24,7 @@ class NearEarthObject(object):
                 self.diameter_min_km = value
             elif key == 'is_potentially_hazardous_asteroid':
                 self.is_potentially_hazardous_asteroid = value
-        self.list_of_orbits = []
+        self.orbits = []
 
     def update_orbits(self, orbit):
         """
@@ -34,7 +34,7 @@ class NearEarthObject(object):
         :return: None
         """
         # TODO: How do we connect orbits back to the Near Earth Object?
-        self.list_of_orbits.append(orbit)
+        self.orbits.append(orbit)
 
     def __str__(self):
         message = 'Name: ' + self.name \
@@ -63,14 +63,14 @@ class OrbitPath(object):
         #name, miss distance in km, and orbit date
         for key, value in kwargs.items():
             if key == 'name':
-                self.name = value
+                self.neo_name = value
             elif key == 'miss_distance_kilometers':
                 self.miss_distance_kilometers = value
             elif key == 'close_approach_date':
                 self.close_approach_date = value
 
     def __str__(self):
-        message = 'Name: ' + self.name \
+        message = 'Name: ' + self.neo_name \
                  + ', Miss_Distance_Kilometers: ' + self.miss_distance_kilometers \
                  + ', Close_Approach_Date: ' + self.close_approach_date
         return message

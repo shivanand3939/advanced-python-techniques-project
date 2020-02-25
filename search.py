@@ -156,7 +156,7 @@ class Filter(object):
                         valid_neos.append(neo_object)
             else : #OrbitPath
                 if self.object == 'distance':
-                    for orbit_path in neo_object.list_of_orbits:
+                    for orbit_path in neo_object.orbits:
                         if self.is_valid_neo(func, orbit_path.miss_distance_kilometers, self.value):
                             valid_neos.append(neo_object)
                             break
@@ -213,8 +213,6 @@ class NEOSearcher(object):
         return res[:number]
 
 
-
-
     def date_equals(self, db, date, filters, return_object):
         total_neos = db.orbitdate_neo_mapping[date]
         if filters:
@@ -228,11 +226,10 @@ class NEOSearcher(object):
         else:
             orbits = []
             for neo in total_neos:
-                orbits.extend(neo.list_of_orbits)
+                orbits.extend(neo.orbits)
             return orbits
 
     def date_between(self, db, start_date, end_date, filters, return_object):
-        print(filters, type(filters))
         res = []
         for each in db.orbitdate_neo_mapping:
             if each >=start_date and each <= end_date:
@@ -248,5 +245,5 @@ class NEOSearcher(object):
         else:
             orbits = []
             for neo in res:
-                orbits.extend(neo.list_of_orbits)
+                orbits.extend(neo.orbits)
             return orbits
