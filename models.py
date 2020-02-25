@@ -37,11 +37,12 @@ class NearEarthObject(object):
         self.orbits.append(orbit)
 
     def __str__(self):
+        print(type(str(self.is_potentially_hazardous_asteroid)))
         message = 'Name: ' + self.name \
-                 + ', NASA_Jpl_Url: ' + self.nasa_jpl_url \
-                 + ', Absolute_Magnitude_H: ' + self.absolute_magnitude_h \
-                 + ', diameter_min_km: ' + self.diameter_min_km \
-                 + ', is_potentially_hazardous_asteroid: ' + self.is_potentially_hazardous_asteroid
+                 + ', NASA_Jpl_Url: ' + str(self.nasa_jpl_url) \
+                 + ', Absolute_Magnitude_H: ' + str(self.absolute_magnitude_h) \
+                 + ', diameter_min_km: ' + str(self.diameter_min_km) \
+                 + ', is_potentially_hazardous_asteroid: ' + str(self.is_potentially_hazardous_asteroid)
         return message
 
 
@@ -71,6 +72,6 @@ class OrbitPath(object):
 
     def __str__(self):
         message = 'Name: ' + self.neo_name \
-                 + ', Miss_Distance_Kilometers: ' + self.miss_distance_kilometers \
-                 + ', Close_Approach_Date: ' + self.close_approach_date
+                 + ', Miss_Distance_Kilometers: ' + str(self.miss_distance_kilometers) \
+                 + ', Close_Approach_Date: ' + str(self.close_approach_date)
         return message
