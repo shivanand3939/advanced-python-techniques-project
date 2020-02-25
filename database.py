@@ -41,11 +41,12 @@ class NEODatabase(object):
         df  = pd.read_csv(filename)
         df_sub = df[['id', 'name', 'nasa_jpl_url',\
                                'absolute_magnitude_h', 'estimated_diameter_min_kilometers',\
-                               'close_approach_date', 'miss_distance_kilometers']]
+                               'close_approach_date', 'miss_distance_kilometers', 'is_potentially_hazardous_asteroid']]
         df_sub['neo_object'] = df_sub.apply( self.generate_neo_object , axis = 1)
         df_sub['orbit_part_object'] = df[['id', 'name', 'nasa_jpl_url',\
                                'absolute_magnitude_h', 'estimated_diameter_min_kilometers',\
-                               'close_approach_date', 'miss_distance_kilometers']].apply( self.generate_orbit_path , axis = 1)
+                               'close_approach_date', 'miss_distance_kilometers',\
+                               'is_potentially_hazardous_asteroid']].apply( self.generate_orbit_path , axis = 1)
 
         df_orbit_path = pd.DataFrame([])
         df_orbit_path['orbit_part_v1'] = df_sub.groupby('name')['orbit_part_object'].apply(list)
@@ -75,12 +76,13 @@ class NEODatabase(object):
         """
         Generates Neo object from every record of the csv file
         """
-        id_, name, nasa_jpl_url, absolute_magnitude_h, estimated_diameter_min_kilometers, close_approach_date, miss_distance_kilometers = val
+        id_, name, nasa_jpl_url, absolute_magnitude_h, estimated_diameter_min_kilometers, close_approach_date, miss_distance_kilometers, is_potentially_hazardous_asteroid = val
         neo = NearEarthObject(id_ = id_, \
                           name = name, \
                           nasa_jpl_url = nasa_jpl_url, \
                           absolute_magnitude_h = absolute_magnitude_h, \
-                          estimated_diameter_min_kilometers = estimated_diameter_min_kilometers
+                          diameter_min_km = estimated_diameter_min_kilometers, \
+                          is_potentially_hazardous_asteroid = is_potentially_hazardous_asteroid
                          )
         return neo
 
@@ -89,7 +91,7 @@ class NEODatabase(object):
         """
         Generates Neo object from every record of the csv file
         """
-        id, name, nasa_jpl_url, absolute_magnitude_h, estimated_diameter_min_kilometers, close_approach_date, miss_distance_kilometers = val
+        id, name, nasa_jpl_url, absolute_magnitude_h, estimated_diameter_min_kilometers, close_approach_date, miss_distance_kilometers, is_potentially_hazardous_asteroid = val
         return OrbitPath(name = name, \
                      miss_distance_kilometers = miss_distance_kilometers, \
                      close_approach_date = close_approach_date)

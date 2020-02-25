@@ -1,6 +1,6 @@
 from collections import namedtuple
 from enum import Enum
-
+import operator
 from exceptions import UnsupportedFeature
 from models import NearEarthObject, OrbitPath
 
@@ -39,6 +39,7 @@ class Query(object):
         self.start_date = None
         self.end_date = None
         self.return_object = None
+        self.filter = None
         for key, value in kwargs.items():
             if key == 'number':
                 self.number = value
@@ -50,6 +51,8 @@ class Query(object):
                 self.end_date = value
             elif key == 'return_object':
                 self.return_object = value
+            elif key == 'filter':
+                self.filter = value
 
 
     def build_query(self):
@@ -65,7 +68,12 @@ class Query(object):
             date_search = self.DateSearch('equals', [self.date])
 
         # TODO: Translate the query parameters into a QueryBuild.Selectors object
-        return self.Selectors(date_search, self.number, None, self.return_object)
+        if self.filter:
+            filter = Filter.create_filter_options(self.filter)
+        else:
+            filter = None
+        return self.Selectors(date_search, self.number, filter, self.return_object)
+
 
 class Filter(object):
     """
@@ -74,10 +82,19 @@ class Filter(object):
     """
     Options = {
         # TODO: Create a dict of filter name to the NearEarthObject or OrbitalPath property
+        'diameter' : 'NearEarthObjectProperty',
+        'is_hazardous' : 'NearEarthObjectProperty',
+        'distance' : 'OrbitalPathProperty'
     }
 
     Operators = {
         # TODO: Create a dict of operator symbol to an Operators method, see README Task 3 for hint
+        '<' : operator.lt,
+        '<=' : operator.le,
+        '=' : operator.eq,
+        '!=' : operator.ne,
+        '>' : operator.gt,
+        '>=' : operator.ge
     }
 
     def __init__(self, field, object, operation, value):
@@ -100,8 +117,24 @@ class Filter(object):
         :param input: list in format ["filter_option:operation:value_of_option", ...]
         :return: defaultdict with key of NearEarthObject or OrbitPath and value of empty list or list of Filters
         """
+        Options = {
+
+            'diameter' : 'NearEarthObjectProperty',
+            'is_hazardous' : 'NearEarthObjectProperty',
+            'distance' : 'OrbitalPathProperty'
+        }
 
         # TODO: return a defaultdict of filters with key of NearEarthObject or OrbitPath and value of empty list or list of Filters
+        near_earth_object_filers = []
+        orbit_path_filters = []
+        for filter in filter_options:
+            filter_option, operation, value_of_option = filter.split(':')
+            if Options[filter_option] == 'NearEarthObjectProperty':
+                near_earth_object_filers.append(Filter('NearEarthObject', filter_option, operation, value_of_option))
+            else:
+                orbit_path_filters.append(Filter('OrbitPath', filter_option, operation, value_of_option))
+
+        return {'NearEarthObject': near_earth_object_filers, 'OrbitPath' : orbit_path_filters}
 
     def apply(self, results):
         """
@@ -111,6 +144,30 @@ class Filter(object):
         :return: filtered list of Near Earth Object results
         """
         # TODO: Takes a list of NearEarthObjects and applies the value of its filter operation to the results
+        valid_neos = []
+        for neo_object in results:
+            func = self.Operators[self.operation]
+            if self.field == 'NearEarthObject':
+                if self.object == 'diameter':
+                    if self.is_valid_neo(func, neo_object.diameter_min_km, self.value):
+                        valid_neos.append(neo_object)
+                elif self.object == 'is_hazardous':
+                    if self.is_valid_neo(func, neo_object.is_potentially_hazardous_asteroid, self.value):
+                        valid_neos.append(neo_object)
+            else : #OrbitPath
+                if self.object == 'distance':
+                    for orbit_path in neo_object.list_of_orbits:
+                        if self.is_valid_neo(func, orbit_path.miss_distance_kilometers, self.value):
+                            valid_neos.append(neo_object)
+                            break
+        return valid_neos
+
+    def is_valid_neo(self, func, actual_val, threshold):
+        if func(str(actual_val), str(threshold)):
+            return True
+        else:
+            return False
+
 
 
 class NEOSearcher(object):
@@ -149,19 +206,32 @@ class NEOSearcher(object):
         filter = query[2]
         return_object = query[3]
         if date_search[0] == self.date_search_equals:
-            res = self.date_equals(self.db, date_search[1][0])
+            res = self.date_equals(self.db, date_search[1][0], filter)
         else:
-            res = self.date_between(self.db, date_search[1][0], date_search[1][1])
+            res = self.date_between(self.db, date_search[1][0], date_search[1][1], filter)
         return res[:number]
 
 
-    def date_equals(self, db, date):
-        return db.orbitdate_neo_mapping[date]
+    def date_equals(self, db, date, filters):
+
+        total_neos = db.orbitdate_neo_mapping[date]
+        if filters:
+            for filter in filters['NearEarthObject']:
+                total_neos = filter.apply(total_neos)
+            for filter in filters['OrbitPath']:
+                total_neos = filter.apply(total_neos)
+        return total_neos
 
 
-    def date_between(self, db, start_date, end_date):
+    def date_between(self, db, start_date, end_date, filters):
+        print(filters, type(filters))
         res = []
         for each in db.orbitdate_neo_mapping:
             if each >=start_date and each <= end_date:
                 res.extend(db.orbitdate_neo_mapping[each])
+        if filters:
+            for filter in filters['NearEarthObject']:
+                res = filter.apply(res)
+            for filter in filters['OrbitPath']:
+                res = filter.apply(res)
         return res

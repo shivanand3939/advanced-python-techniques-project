@@ -20,8 +20,10 @@ class NearEarthObject(object):
                 self.nasa_jpl_url = value
             elif key == 'absolute_magnitude_h':
                 self.absolute_magnitude_h = value
-            elif key == 'estimated_diameter_min_kilometers':
-                self.estimated_diameter_min_kilometers = value
+            elif key == 'diameter_min_km':
+                self.diameter_min_km = value
+            elif key == 'is_potentially_hazardous_asteroid':
+                self.is_potentially_hazardous_asteroid = value
         self.list_of_orbits = []
 
     def update_orbits(self, orbit):
@@ -38,10 +40,11 @@ class NearEarthObject(object):
         message = 'Name: ' + self.name \
                  + ', NASA_Jpl_Url: ' + self.nasa_jpl_url \
                  + ', Absolute_Magnitude_H: ' + self.absolute_magnitude_h \
-                 + ', Estimated_Diameter_Min_Kilometers: ' + self.estimated_diameter_min_kilometers
+                 + ', diameter_min_km: ' + self.diameter_min_km \
+                 + ', is_potentially_hazardous_asteroid: ' + self.is_potentially_hazardous_asteroid
         return message
 
-    
+
 
 
 
