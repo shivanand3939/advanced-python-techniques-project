@@ -206,24 +206,32 @@ class NEOSearcher(object):
         filter = query[2]
         return_object = query[3]
         if date_search[0] == self.date_search_equals:
-            res = self.date_equals(self.db, date_search[1][0], filter)
+            res = self.date_equals(self.db, date_search[1][0], filter, return_object)
         else:
-            res = self.date_between(self.db, date_search[1][0], date_search[1][1], filter)
+            res = self.date_between(self.db, date_search[1][0], date_search[1][1], filter, return_object)
+
         return res[:number]
 
 
-    def date_equals(self, db, date, filters):
 
+
+    def date_equals(self, db, date, filters, return_object):
         total_neos = db.orbitdate_neo_mapping[date]
         if filters:
             for filter in filters['NearEarthObject']:
                 total_neos = filter.apply(total_neos)
             for filter in filters['OrbitPath']:
                 total_neos = filter.apply(total_neos)
-        return total_neos
 
+        if return_object == 'NEO':
+            return total_neos
+        else:
+            orbits = []
+            for neo in total_neos:
+                orbits.extend(neo.list_of_orbits)
+            return orbits
 
-    def date_between(self, db, start_date, end_date, filters):
+    def date_between(self, db, start_date, end_date, filters, return_object):
         print(filters, type(filters))
         res = []
         for each in db.orbitdate_neo_mapping:
@@ -234,4 +242,11 @@ class NEOSearcher(object):
                 res = filter.apply(res)
             for filter in filters['OrbitPath']:
                 res = filter.apply(res)
-        return res
+
+        if return_object == 'NEO':
+            return res
+        else:
+            orbits = []
+            for neo in res:
+                orbits.extend(neo.list_of_orbits)
+            return orbits
